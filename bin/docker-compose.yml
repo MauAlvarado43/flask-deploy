@@ -57,3 +57,7 @@ services:
      - broker-rabbitmq
      - db-postgres
      - migration
+
+networks:
+  default:
+    name: flask_deploy
