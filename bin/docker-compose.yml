@@ -1,0 +1,59 @@
+version: '3'
+services:
+
+ # A RabbitMQ message broker container (celery communication broker)
+ broker-rabbitmq:
+   image: "rabbitmq:3.7.14-management"
+   environment:
+     - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
+     - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASS}
+     
+ # A postgres database container
+ db-postgres:
+   image: "postgres:11.2"
+   environment:
+     - POSTGRES_USER=${DB_USER}
+     - POSTGRES_PASSWORD=${DB_PASS}
+
+ # An app container which perform the database migration
+ migration:
+   build: .
+   environment:
+     - APP_ENV=${APP_ENV}
+   command: flask db upgrade
+   depends_on:
+     - db-postgres
+
+ # The main app container
+ api:
+   build: .
+   ports:
+    - "5000:5000"
+   environment:
+     - APP_ENV=${APP_ENV}
+   depends_on:
+     - broker-rabbitmq
+     - db-postgres
+     - migration
+
+ # A celery worker container (task queue consumer)
+ api-worker:
+   build: .
+   command: celery worker --workdir=. -A tasks.celery --loglevel=info
+   environment:
+     - APP_ENV=${APP_ENV}
+   depends_on:
+     - broker-rabbitmq
+     - db-postgres
+     - migration
+
+ # A celery beat container (periodic tasks scheduler)
+ api-beat:
+   build: .
+   command: celery beat -A tasks.celery --loglevel=info
+   environment:
+     - APP_ENV=${APP_ENV}
+   depends_on:
+     - broker-rabbitmq
+     - db-postgres
+     - migration
