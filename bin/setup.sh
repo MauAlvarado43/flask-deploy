@@ -2,7 +2,6 @@
 export $(cat .env | xargs)
 
 # Install docker
-
 sudo apt-get update
 sudo apt-get install ca-certificates curl gnupg
 
@@ -18,9 +17,12 @@ echo \
 sudo apt-get update
 sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
-# Install nginx
+# Start docker
+sudo systemctl start docker
 
+# Install nginx
 sudo apt-get install -y nginx
 
 # Copy nginx config
-sudo cp app /etc/nginx/sites-available/app
+sudo cp bin/app /etc/nginx/sites-available/app
+sudo systemctl restart nginx

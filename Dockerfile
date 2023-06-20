@@ -1,13 +1,11 @@
 FROM python:3.7.2
 
-RUN pip install pipenv
-
 ADD . /flask-deploy
 
 WORKDIR /flask-deploy
 
-RUN pipenv install --system --skip-lock
-
+RUN pip install --upgrade pip
+RUN pip install -r requirements.txt
 RUN pip install gunicorn[gevent]
 
 EXPOSE 5000
